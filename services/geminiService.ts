@@ -49,8 +49,8 @@ const FALLBACK_NEWS: NewsItem[] = [
 
 export const getEnergyNews = async (): Promise<NewsItem[]> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash", // Use 1.5 flash for faster reliable JSON
+    const response = await (ai as any).models.generateContent({
+      model: "gemini-3-flash-preview",
       contents: [
         {
           role: "user",
@@ -166,7 +166,7 @@ export const getUpcomingBirthdays = async () => {
     `;
 
     const response = await (ai as any).models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-3-flash-preview",
       contents: [{ role: "user", parts: [{ text: prompt }] }]
     });
 
