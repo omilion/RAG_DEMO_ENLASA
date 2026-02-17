@@ -94,16 +94,32 @@ export const getEnergyNews = async (): Promise<NewsItem[]> => {
 
 export const getLibraryDocuments = async () => {
   try {
-    const { data, error } = await supabase
-      .from('documents')
-      .select('metadata');
+    let allMetadata: any[] = [];
+    let from = 0;
+    const batchSize = 1000;
+    let hasMore = true;
 
-    if (error) throw error;
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('metadata')
+        .range(from, from + batchSize - 1);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        allMetadata = [...allMetadata, ...data];
+        from += batchSize;
+        if (data.length < batchSize) hasMore = false;
+      } else {
+        hasMore = false;
+      }
+    }
 
     const documentMap = new Map();
     const folderSet = new Set<string>();
 
-    data.forEach((doc: any) => {
+    allMetadata.forEach((doc: any) => {
       const source = doc.metadata?.source || 'Desconocido';
       const folder = doc.metadata?.folder || 'Otros';
       folderSet.add(folder);
