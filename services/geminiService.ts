@@ -138,6 +138,49 @@ export const getLibraryDocuments = async () => {
   }
 };
 
+export const getUpcomingBirthdays = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .select('content')
+      .eq('metadata->>source', 'cumpleanos_50_colaboradores.xlsx');
+
+    if (error || !data || data.length === 0) return [];
+
+    const fullContent = data.map(d => d.content).join('\n');
+    const today = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+
+    const prompt = `
+      Basado en la siguiente lista de colaboradores y sus cumpleaños:
+      ${fullContent}
+      
+      Hoy es ${today}. Identifica los 3 cumpleaños más cercanos (empezando por hoy).
+      Devuelve ÚNICAMENTE un array JSON con este formato:
+      [
+        { "name": "Nombre completo", "date": "Hoy" o "Mañana" o "DD Mes", "department": "Area/Depto", "photo": "https://picsum.photos/seed/[nombre]/100/100" }
+      ]
+    `;
+
+    const response = await (ai as any).models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }]
+    });
+
+    const responseText = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const jsonMatch = responseText.match(/\[.*\]/s);
+
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return [];
+
+  } catch (error) {
+    console.error("Error fetching upcoming birthdays:", error);
+    return [];
+  }
+};
+
+
 const searchDocuments = async (query: string) => {
 
   try {

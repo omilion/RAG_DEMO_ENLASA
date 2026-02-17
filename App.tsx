@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar, ViewType } from './components/Sidebar';
 import { DashboardCard } from './components/DashboardCard';
 import { AIChat } from './components/AIChat';
-import { getEnergyNews, getLibraryDocuments } from './services/geminiService';
+import { getEnergyNews, getLibraryDocuments, getUpcomingBirthdays } from './services/geminiService';
 
-import { NewsItem } from './types';
+
+import { NewsItem, Birthday } from './types';
+
 import { MOCK_INDICATORS, MOCK_BIRTHDAYS, MOCK_LEGAL } from './constants';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -20,7 +22,9 @@ const App: React.FC = () => {
   const [loadingNews, setLoadingNews] = useState(true);
   const [realDocs, setRealDocs] = useState<{ documents: any[], folders: string[] }>({ documents: [], folders: [] });
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  const [birthdays, setBirthdays] = useState<Birthday[]>(MOCK_BIRTHDAYS);
   const department = "RRHH"; // Departamento que inicia el sistema
+
 
 
   useEffect(() => {
@@ -30,8 +34,14 @@ const App: React.FC = () => {
       setNews(data);
       setLoadingNews(false);
     };
+    const fetchBirthdays = async () => {
+      const data = await getUpcomingBirthdays();
+      if (data && data.length > 0) setBirthdays(data);
+    };
     fetchNews();
+    fetchBirthdays();
   }, []);
+
 
   useEffect(() => {
     if (currentView === 'documents') {
@@ -116,16 +126,26 @@ const App: React.FC = () => {
             </div>
           )}
         </DashboardCard>
-        <DashboardCard title="Cumpleaños Próximos" icon="🎂">
-          <div className="space-y-4">
-            {MOCK_BIRTHDAYS.map((person, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50">
-                <img src={person.photo} alt={person.name} className="w-10 h-10 rounded-full object-cover ring-2 ring-enlasa-cyan/20" />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-slate-800">{person.name}</p>
-                  <p className="text-xs text-slate-500">{person.department}</p>
+        <DashboardCard title="Personal de Cumpleaños" icon="🎂" className="md:col-span-2">
+          <div className="space-y-3">
+            {birthdays.map((b, i) => (
+              <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={b.photo}
+                    alt={b.name}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-slate-100"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(b.name)}&background=0E1B4D&color=fff`;
+                    }}
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">{b.name}</p>
+                    <p className="text-xs text-slate-400">{b.department}</p>
+                  </div>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${person.date === 'Hoy' ? 'bg-enlasa-cyan/10 text-enlasa-blue' : 'bg-slate-100 text-slate-500'}`}>{person.date}</span>
+                <span className={`text-xs font-bold px-2 py-1 rounded-md ${b.date === 'Hoy' ? 'bg-enlasa-cyan/20 text-enlasa-blue' : 'bg-slate-100 text-slate-500'
+                  }`}>{b.date}</span>
               </div>
             ))}
           </div>
