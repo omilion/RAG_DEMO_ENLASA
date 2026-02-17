@@ -17,6 +17,13 @@ const DAILY_ACTIONS: ActionBadge[] = [
   { label: 'Bajas procesadas', count: 2, color: 'bg-slate-100 text-slate-700' },
 ];
 
+const MOCK_MEETINGS = [
+  { time: '09:00', title: 'Onboarding Nuevo Talento', room: 'Sala A', type: 'HR' },
+  { time: '11:30', title: 'Revisión Salarial Q1', room: 'Remoto', type: 'Finanzas' },
+  { time: '15:00', title: 'Comité de Ética', room: 'Sala B', type: 'Legal' },
+  { time: '17:00', title: 'Planificación Anual BESS', room: 'Sala C', type: 'Operaciones' },
+];
+
 const CHART_DATA = [
   { name: 'Lun', value: 400 }, { name: 'Mar', value: 300 }, { name: 'Mie', value: 600 },
   { name: 'Jue', value: 800 }, { name: 'Vie', value: 500 }, { name: 'Sab', value: 900 }, { name: 'Dom', value: 700 },
@@ -80,26 +87,29 @@ const App: React.FC = () => {
         <DashboardCard title="Inteligencia Organizacional (RAG)" icon="🧠">
           <AIChat />
         </DashboardCard>
-        <DashboardCard title="Disponibilidad de Planta vs Performance" icon="⚡">
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={CHART_DATA}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1c26ba" stopOpacity={0.1} />
-                    <stop offset="95%" stopColor="#1c26ba" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                <Area type="monotone" dataKey="value" stroke="#1c26ba" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
-              </AreaChart>
-            </ResponsiveContainer>
+        <DashboardCard title="Calendario de Reuniones" icon="📅">
+          <div className="space-y-4">
+            {MOCK_MEETINGS.map((meeting, idx) => (
+              <div key={idx} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                <div className="flex flex-col items-center justify-center w-16 h-16 bg-enlasa-blue/5 rounded-xl shrink-0">
+                  <span className="text-sm font-bold text-enlasa-blue">{meeting.time}</span>
+                  <span className="text-[10px] text-enlasa-blue/60 font-medium">AM/PM</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h5 className="text-sm font-bold text-slate-800 truncate">{meeting.title}</h5>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">{meeting.room}</span>
+                    <span className="text-[10px] text-slate-400">• {meeting.type}</span>
+                  </div>
+                </div>
+                <button className="p-2 text-slate-400 hover:text-enlasa-blue transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
+                </button>
+              </div>
+            ))}
           </div>
         </DashboardCard>
-      </div >
+      </div>
       <div className="col-span-12 lg:col-span-4 space-y-6">
         <DashboardCard title="Indicadores Económicos" icon="📈">
           <div className="grid grid-cols-2 gap-3">

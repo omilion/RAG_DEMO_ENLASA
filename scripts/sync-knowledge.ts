@@ -129,34 +129,34 @@ async function processFile(filePath) {
     for (const [index, chunk] of chunks.entries()) {
         const embedding = await getEmbedding(chunk);
         if (!embedding) {
-            console.warn(`   ⚠️ Failed embedding for chunk ${index}`);
+            console.warn(`   ⚠️ Failed embedding for chunk ${index} of ${filename}`);
             continue;
         }
 
         const relativePath = path.relative(KNOWLEDGE_DIR, filePath);
-        const folderPath = path.dirname(relativePath);
-        const folder = folderPath === '.' ? 'Raíz' : folderPath.split(path.sep)[0]; // Just the top level folder for UI
+        const parts = relativePath.split(path.sep);
+        // Folder logic: If it's in a subfolder, use that folder name. If it's in root, use 'Raíz'.
+        const folderName = parts.length > 1 ? parts[0] : 'Raíz';
 
         const { error } = await supabase.from('documents').insert({
             content: chunk,
             metadata: {
                 source: filename,
-                folder: folder,
+                folder: folderName,
                 path: relativePath,
-                chunk_index: index
+                chunk_index: index,
+                synced_at: new Date().toISOString()
             },
             embedding
         });
 
         if (error) {
-            console.error(`   ❌ Insert error chunk ${index}:`, error.message);
+            console.error(`   ❌ Insert error ${filename} [${index}]:`, error.message);
         } else {
             successCount++;
         }
     }
-    if (successCount > 0) {
-        console.log(`   ✅ Successfully synced ${filename} (${successCount} chunks)`);
-    }
+    console.log(`   ✅ Finished ${filename}: ${successCount}/${chunks.length} chunks synced.`);
 }
 
 async function run() {
