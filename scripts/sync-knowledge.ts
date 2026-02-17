@@ -134,7 +134,8 @@ async function processFile(filePath) {
         }
 
         const relativePath = path.relative(KNOWLEDGE_DIR, filePath);
-        const folder = path.dirname(relativePath) === '.' ? 'Raíz' : path.dirname(relativePath);
+        const folderPath = path.dirname(relativePath);
+        const folder = folderPath === '.' ? 'Raíz' : folderPath.split(path.sep)[0]; // Just the top level folder for UI
 
         const { error } = await supabase.from('documents').insert({
             content: chunk,
@@ -147,14 +148,15 @@ async function processFile(filePath) {
             embedding
         });
 
-
         if (error) {
             console.error(`   ❌ Insert error chunk ${index}:`, error.message);
         } else {
             successCount++;
         }
     }
-    console.log(`   ✅ Uploaded ${successCount}/${chunks.length} chunks.`);
+    if (successCount > 0) {
+        console.log(`   ✅ Successfully synced ${filename} (${successCount} chunks)`);
+    }
 }
 
 async function run() {

@@ -65,17 +65,18 @@ const App: React.FC = () => {
   const renderDashboard = () => (
     <div className="grid grid-cols-12 gap-6 animate-in fade-in duration-500">
       <div className="col-span-12 lg:col-span-8 space-y-6">
-        <div className="flex flex-wrap gap-3 mb-4">
-          <div className="w-full mb-1">
-            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Resumen de Acciones - Día Anterior</h3>
+        <div className="space-y-2 mb-6">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumen de Acciones - Día Anterior</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {DAILY_ACTIONS.map((action, idx) => (
+              <div key={idx} className={`p-4 rounded-2xl border border-transparent shadow-sm flex items-center justify-between font-bold text-sm ${action.color}`}>
+                <span className="truncate">{action.label}</span>
+                <span className="text-lg opacity-80">{action.count}</span>
+              </div>
+            ))}
           </div>
-          {DAILY_ACTIONS.map((action, idx) => (
-            <div key={idx} className={`px-4 py-2 rounded-xl border border-transparent shadow-sm flex items-center gap-2 font-bold text-sm ${action.color}`}>
-              <span className="text-lg opacity-80">{action.count}</span>
-              <span>{action.label}</span>
-            </div>
-          ))}
         </div>
+
         <DashboardCard title="Inteligencia Organizacional (RAG)" icon="🧠">
           <AIChat />
         </DashboardCard>
@@ -98,7 +99,7 @@ const App: React.FC = () => {
             </ResponsiveContainer>
           </div>
         </DashboardCard>
-      </div>
+      </div >
       <div className="col-span-12 lg:col-span-4 space-y-6">
         <DashboardCard title="Indicadores Económicos" icon="📈">
           <div className="grid grid-cols-2 gap-3">
@@ -176,7 +177,7 @@ const App: React.FC = () => {
           </div>
         </DashboardCard>
       </div>
-    </div>
+    </div >
   );
 
   const renderAIAssistant = () => (
@@ -211,20 +212,6 @@ const App: React.FC = () => {
 
     return (
       <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-800">Gestión Documental</h2>
-            <p className="text-slate-500">Gestión inteligente para el futuro de la energía.</p>
-          </div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-2 border border-slate-200">
-              📥 Reporte Mensual
-            </button>
-            <button className="bg-enlasa-blue text-white px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
-              Nueva Solicitud
-            </button>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {foldersArray.length > 0 ? foldersArray.map((folder, i) => (

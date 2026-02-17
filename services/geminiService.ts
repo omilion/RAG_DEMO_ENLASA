@@ -139,17 +139,20 @@ export const getUpcomingBirthdays = async () => {
     if (error || !data || data.length === 0) return [];
 
     const fullContent = data.map(d => d.content).join('\n');
-    const today = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+    const context = fullContent;
 
     const prompt = `
-      Basado en la siguiente lista de colaboradores y sus cumpleaños:
-      ${fullContent}
+      Basado en los siguientes fragmentos de archivos de Recursos Humanos (que incluyen una lista de colaboradores con sus FECHAS DE NACIMIENTO), identifica a las 3 personas cuyos CUMPLEAÑOS son los más próximos a la fecha de hoy (${new Date().toLocaleDateString('es-CL')}).
       
-      Hoy es ${today}. Identifica los 3 cumpleaños más cercanos (empezando por hoy).
-      Devuelve ÚNICAMENTE un array JSON con este formato:
-      [
-        { "name": "Nombre completo", "date": "Hoy" o "Mañana" o "DD Mes", "department": "Area/Depto", "photo": "https://picsum.photos/seed/[nombre]/100/100" }
-      ]
+      IMPORTANTE:
+      1. Usa la FECHA DE NACIMIENTO para calcular el próximo cumpleaños en 2025 o 2026.
+      2. Si el cumpleaños es HOY, pon "Hoy" en el campo date.
+      3. Si es mañana, pon "Mañana" en el campo date.
+      4. Si es en otra fecha, pon el día y mes (ej: "25 de Marzo").
+      5. Devuelve un array JSON con: name, date, department, photo (usa una URL vacía "").
+      
+      Fragmentos:
+      ${context}
     `;
 
     const response = await (ai as any).models.generateContent({
