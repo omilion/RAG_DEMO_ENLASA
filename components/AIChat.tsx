@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ChatMessage } from '../types';
 
 import { queryRAG } from '../services/geminiService';
@@ -83,7 +84,7 @@ export const AIChat: React.FC<AIChatProps> = ({ messages, setMessages }) => {
               }`}>
               {m.role === 'model' ? (
                 <div className="text-sm markdown-body">
-                  <ReactMarkdown>{m.text}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                 </div>
               ) : (
                 <p className="text-sm leading-relaxed">{m.text}</p>
