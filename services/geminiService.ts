@@ -136,22 +136,32 @@ export const getUpcomingBirthdays = async () => {
       .select('content')
       .eq('metadata->>source', 'cumpleanos_50_colaboradores.xlsx');
 
-    if (error || !data || data.length === 0) return [];
+    if (error) {
+      console.error("Supabase error fetching birthdays:", error);
+      return [];
+    }
 
-    const fullContent = data.map(d => d.content).join('\n');
-    const context = fullContent;
+    if (!data || data.length === 0) {
+      console.warn("No birthday documents found in Supabase.");
+      return [];
+    }
+
+    const context = data.map(d => d.content).join('\n');
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('es-CL');
 
     const prompt = `
-      Basado en los siguientes fragmentos de archivos de Recursos Humanos (que incluyen una lista de colaboradores con sus FECHAS DE NACIMIENTO), identifica a las 3 personas cuyos CUMPLEAÑOS son los más próximos a la fecha de hoy (${new Date().toLocaleDateString('es-CL')}).
+      Basado en la siguiente lista de colaboradores (CSV), identifica a las 3 personas cuyos CUMPLEAÑOS son los más próximos a hoy (${todayStr}).
       
       IMPORTANTE:
-      1. Usa la FECHA DE NACIMIENTO para calcular el próximo cumpleaños en 2025 o 2026.
-      2. Si el cumpleaños es HOY, pon "Hoy" en el campo date.
-      3. Si es mañana, pon "Mañana" en el campo date.
-      4. Si es en otra fecha, pon el día y mes (ej: "25 de Marzo").
-      5. Devuelve un array JSON con: name, date, department, photo (usa una URL vacía "").
+      - La columna 'Fecha de nacimiento' está en formato YYYY-MM-DD.
+      - Debes calcular el próximo cumpleaños (mismo mes y día en 2025/2026).
+      - Si el cumpleaños es HOY, pon "Hoy" en el campo date.
+      - Si es mañana, pon "Mañana" en el campo date.
+      - Si es en otra fecha, pon el día y mes (ej: "25 de Marzo").
+      - Devuelve UNICAMENTE un array JSON con este formato: [{"name": "Nombre", "date": "Hoy/Mañana/Fecha", "department": "Área"}]
       
-      Fragmentos:
+      DATOS:
       ${context}
     `;
 
@@ -161,11 +171,17 @@ export const getUpcomingBirthdays = async () => {
     });
 
     const responseText = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const jsonMatch = responseText.match(/\[.*\]/s);
+    console.log("🎂 Birthday RAG Response Raw:", responseText);
 
+    const jsonMatch = responseText.match(/\[.*\]/s);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      return parsed.map((p: any) => ({
+        ...p,
+        photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=0E1B4D&color=fff`
+      }));
     }
+
     return [];
 
   } catch (error) {

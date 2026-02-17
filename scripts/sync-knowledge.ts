@@ -160,8 +160,22 @@ async function processFile(filePath) {
 }
 
 async function run() {
-    console.log("🚀 Starting knowledge sync...");
-    console.log(`📂 Scanning: ${KNOWLEDGE_DIR}`);
+    const args = process.argv.slice(2);
+    const targetFileArg = args.find(arg => arg.startsWith('--file='));
+    const targetFile = targetFileArg ? targetFileArg.split('=')[1] : null;
+
+    if (targetFile) {
+        console.log(`🎯 Targeted sync for: ${targetFile}`);
+        const fullPath = path.resolve(process.cwd(), targetFile);
+        if (fs.existsSync(fullPath)) {
+            await processFile(fullPath);
+        } else {
+            console.error(`❌ File not found: ${fullPath}`);
+        }
+        return;
+    }
+
+    console.log("🚀 Starting global knowledge sync...");
 
     if (!fs.existsSync(KNOWLEDGE_DIR)) {
         console.error(`❌ Directory not found: ${KNOWLEDGE_DIR}`);
