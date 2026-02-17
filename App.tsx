@@ -6,10 +6,16 @@ import { AIChat } from './components/AIChat';
 import { getEnergyNews, getLibraryDocuments, getUpcomingBirthdays } from './services/geminiService';
 
 
-import { NewsItem, Birthday } from './types';
+import { NewsItem, Birthday, ActionBadge } from './types';
 
 import { MOCK_INDICATORS, MOCK_BIRTHDAYS, MOCK_LEGAL } from './constants';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+const DAILY_ACTIONS: ActionBadge[] = [
+  { label: 'Nuevas contrataciones', count: 3, color: 'bg-green-100 text-green-700' },
+  { label: 'Reportes generados', count: 12, color: 'bg-blue-100 text-blue-700' },
+  { label: 'Actualizaciones legales', count: 5, color: 'bg-amber-100 text-amber-700' },
+  { label: 'Bajas procesadas', count: 2, color: 'bg-slate-100 text-slate-700' },
+];
 
 const CHART_DATA = [
   { name: 'Lun', value: 400 }, { name: 'Mar', value: 300 }, { name: 'Mie', value: 600 },
@@ -59,19 +65,14 @@ const App: React.FC = () => {
   const renderDashboard = () => (
     <div className="grid grid-cols-12 gap-6 animate-in fade-in duration-500">
       <div className="col-span-12 lg:col-span-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {MOCK_INDICATORS.map((indicator, idx) => (
-            <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{indicator.name}</p>
-              <div className="flex items-end justify-between mt-2">
-                <span className="text-xl font-bold text-slate-900">{indicator.value}</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${indicator.trend === 'up' ? 'bg-red-50 text-red-600' :
-                  indicator.trend === 'down' ? 'bg-green-50 text-green-600' :
-                    'bg-slate-50 text-slate-600'
-                  }`}>
-                  {indicator.trend === 'up' ? '▲' : indicator.trend === 'down' ? '▼' : '•'} {indicator.change}%
-                </span>
-              </div>
+        <div className="flex flex-wrap gap-3 mb-4">
+          <div className="w-full mb-1">
+            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Resumen de Acciones - Día Anterior</h3>
+          </div>
+          {DAILY_ACTIONS.map((action, idx) => (
+            <div key={idx} className={`px-4 py-2 rounded-xl border border-transparent shadow-sm flex items-center gap-2 font-bold text-sm ${action.color}`}>
+              <span className="text-lg opacity-80">{action.count}</span>
+              <span>{action.label}</span>
             </div>
           ))}
         </div>
@@ -99,6 +100,22 @@ const App: React.FC = () => {
         </DashboardCard>
       </div>
       <div className="col-span-12 lg:col-span-4 space-y-6">
+        <DashboardCard title="Indicadores Económicos" icon="📈">
+          <div className="grid grid-cols-2 gap-3">
+            {MOCK_INDICATORS.map((indicator, idx) => (
+              <div key={idx} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{indicator.name}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-sm font-bold text-slate-800">{indicator.value}</span>
+                  <span className={`text-[10px] font-bold ${indicator.trend === 'up' ? 'text-red-500' : indicator.trend === 'down' ? 'text-green-500' : 'text-slate-400'}`}>
+                    {indicator.trend === 'up' ? '▲' : indicator.trend === 'down' ? '▼' : '•'} {indicator.change}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
+
         <DashboardCard title="Noticias" icon="📰">
           {loadingNews ? (
             <div className="space-y-4 animate-pulse">
@@ -110,17 +127,25 @@ const App: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-6">
               {news.map((item, idx) => (
-                <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="group flex gap-4 items-start rounded-xl">
-                  <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl border border-slate-100">
-                    <img src={item.thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?q=80&w=400'; }} />
+                <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="group block space-y-3">
+                  <div className="flex gap-4 items-start">
+                    <div className="relative w-16 h-16 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+                      <img src={item.thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?q=80&w=400'; }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-800 line-clamp-2 leading-tight group-hover:text-enlasa-blue transition-colors">{item.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-enlasa-blue font-bold px-1.5 py-0.5 bg-enlasa-blue/5 rounded">{item.source}</span>
+                        <span className="text-[10px] text-slate-400">{item.date}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-800 line-clamp-2 leading-tight group-hover:text-enlasa-blue transition-colors">{item.title}</p>
-                    <span className="text-[10px] text-enlasa-blue font-bold px-1.5 py-0.5 bg-enlasa-blue/5 rounded mt-2 inline-block">{item.source}</span>
-                  </div>
+                  {item.excerpt && (
+                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 px-1 italic border-l-2 border-slate-100">{item.excerpt}</p>
+                  )}
                 </a>
               ))}
             </div>

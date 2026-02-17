@@ -50,50 +50,41 @@ const FALLBACK_NEWS: NewsItem[] = [
 export const getEnergyNews = async (): Promise<NewsItem[]> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash", // Use 1.5 flash for faster reliable JSON
       contents: [
         {
           role: "user",
-          parts: [{ text: "Busca las últimas 5 noticias relevantes sobre el sector eléctrico: plantas de energía renovable (solar, eólica), sistemas de almacenamiento de energía por batería (BESS), infraestructura de transmisión y cómo la tecnología digital optimiza estas plantas. Enfócate en noticias de Chile y el mercado global de energía." }]
+          parts: [{ text: "Busca las últimas 5 noticias más relevantes (de hoy o ayer) sobre el sector eléctrico y energía en Chile y el mundo. Incluye: plantas renovables, BESS, transmisión y tecnología digital. \n\nDevuelve la información estrictamente como un array JSON válido facilitando estos campos: title, url, source, excerpt (resumen de 2 líneas), date." }]
         }
       ],
       config: {
         tools: [{ googleSearch: {} }],
-      },
+      } as any,
     });
 
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-    if (chunks) {
-      return chunks
-        .filter((chunk: any) => chunk.web)
-        .map((chunk: any, index: number) => {
-          const title = chunk.web.title || "Noticia del Sector Energía";
-          const url = chunk.web.uri;
-          const source = new URL(url).hostname.replace('www.', '');
+    const responseText = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const jsonMatch = responseText.match(/\[.*\]/s);
 
-          // IDs de fotos de Unsplash verificados para evitar enlaces rotos
-          // 1. Solar, 2. Wind, 3. Grid, 4. Energy Storage/Battery, 5. Control Center
-          const energyPhotoIds = [
-            'photo-1509391366360-fe5bb4489a93',
-            'photo-1466611653046-2f52075b0511',
-            'photo-1473341304170-971dccb5ac1e',
-            'photo-1593941707882-a5bba14938c7',
-            'photo-1581092160562-40aa08e78837'
-          ];
+    if (jsonMatch) {
+      const newsData = JSON.parse(jsonMatch[0]);
 
-          const photoId = energyPhotoIds[index % energyPhotoIds.length];
-          const thumbnail = `https://images.unsplash.com/${photoId}?q=80&w=400&auto=format&fit=crop`;
+      return newsData.map((item: any, index: number) => {
+        const energyPhotoIds = [
+          'photo-1509391366360-fe5bb4489a93',
+          'photo-1466611653046-2f52075b0511',
+          'photo-1473341304170-971dccb5ac1e',
+          'photo-1593941707882-a5bba14938c7',
+          'photo-1581092160562-40aa08e78837'
+        ];
+        const photoId = energyPhotoIds[index % energyPhotoIds.length];
 
-          return {
-            title,
-            url,
-            source,
-            thumbnail,
-            date: 'Hoy'
-          };
-        })
-        .slice(0, 5);
+        return {
+          ...item,
+          thumbnail: `https://images.unsplash.com/${photoId}?q=80&w=400&auto=format&fit=crop`
+        };
+      }).slice(0, 5);
     }
+
     return [];
   } catch (error) {
     console.warn("⚠️ Falling back to sample news due to API error:", error);

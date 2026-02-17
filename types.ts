@@ -5,6 +5,13 @@ export interface NewsItem {
   source: string;
   thumbnail?: string;
   date?: string;
+  excerpt?: string;
+}
+
+export interface ActionBadge {
+  label: string;
+  color: string;
+  count?: string | number;
 }
 
 export interface EconomicIndicator {
