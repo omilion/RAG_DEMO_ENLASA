@@ -1,17 +1,22 @@
--- 1. Enable the pgvector extension to work with embeddings
+-- 1. Enable the pgvector extension
 create extension if not exists vector;
 
--- 2. Create a table to store your documents
-create table if not exists documents (
+-- 2. DANGER: This will delete existing chunks to recreate the table with 3072 dimensions
+drop table if exists documents cascade;
+
+create table documents (
   id bigserial primary key,
   content text, -- The text chunk
   metadata jsonb, -- Extra info: { "source": "filename.pdf", "page": 1 }
-  embedding vector(768) -- Google Gemini embedding dimension
+  embedding vector(3072) -- Google Gemini embedding dimension
 );
+
+
 
 -- 3. Create a function to search for documents
 create or replace function match_documents (
-  query_embedding vector(768),
+  query_embedding vector(3072),
+
   match_threshold float,
   match_count int
 )

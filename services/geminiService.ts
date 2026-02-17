@@ -101,17 +101,49 @@ export const getEnergyNews = async (): Promise<NewsItem[]> => {
   }
 };
 
+export const getLibraryDocuments = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .select('metadata');
+
+    if (error) throw error;
+
+    // Extract unique sources and count segments
+    const documentMap = new Map();
+    data.forEach((doc: any) => {
+      const source = doc.metadata?.source || 'Desconocido';
+      if (!documentMap.has(source)) {
+        documentMap.set(source, {
+          name: source,
+          segments: 0,
+          type: source.split('.').pop()?.toUpperCase() || 'FILE'
+        });
+      }
+      documentMap.get(source).segments++;
+    });
+
+    return Array.from(documentMap.values());
+  } catch (error) {
+    console.error("Error fetching library documents:", error);
+    return [];
+  }
+};
+
 const searchDocuments = async (query: string) => {
+
   try {
     // 1. Generate embedding for query
     const embeddingResponse: any = await ai.models.embedContent({
-      model: "models/text-embedding-004",
+      model: "models/gemini-embedding-001",
       contents: [
         {
           parts: [{ text: query }]
         }
       ]
     });
+
+
 
     const queryEmbedding = embeddingResponse.embedding?.values || embeddingResponse.embeddings?.[0]?.values;
 
@@ -123,9 +155,10 @@ const searchDocuments = async (query: string) => {
     // 2. Search in Supabase
     const { data: documents, error } = await supabase.rpc('match_documents', {
       query_embedding: queryEmbedding,
-      match_threshold: 0.5, // Similarity threshold
-      match_count: 5 // Retrieve top 5 chunks
+      match_threshold: 0.3, // Lower threshold for more results
+      match_count: 10 // Increase count for better context coverage
     });
+
 
     if (error) {
       console.error("Supabase vector search error:", error);
