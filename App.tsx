@@ -6,7 +6,7 @@ import { AIChat } from './components/AIChat';
 import { getEnergyNews, getLibraryDocuments, getUpcomingBirthdays } from './services/geminiService';
 
 
-import { NewsItem, Birthday, ActionBadge } from './types';
+import { NewsItem, Birthday, ActionBadge, ChatMessage } from './types';
 
 import { MOCK_INDICATORS, MOCK_BIRTHDAYS, MOCK_LEGAL } from './constants';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -35,8 +35,13 @@ const App: React.FC = () => {
   const [loadingNews, setLoadingNews] = useState(true);
   const [realDocs, setRealDocs] = useState<{ documents: any[], folders: string[] }>({ documents: [], folders: [] });
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
-  const [birthdays, setBirthdays] = useState<Birthday[]>(MOCK_BIRTHDAYS);
-  const department = "RRHH"; // Departamento que inicia el sistema
+  const [birthdays, setBirthdays] = useState<Birthday[]>([]);
+  const [loadingBirthdays, setLoadingBirthdays] = useState(true);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    { role: 'model', text: 'Hola, soy Enlasa AI. ¿En qué puedo ayudarte con la gestión de RRHH hoy?', timestamp: new Date() }
+  ]);
+
+  const department = "RRHH";
 
 
 
@@ -48,8 +53,14 @@ const App: React.FC = () => {
       setLoadingNews(false);
     };
     const fetchBirthdays = async () => {
+      setLoadingBirthdays(true);
       const data = await getUpcomingBirthdays();
-      if (data && data.length > 0) setBirthdays(data);
+      if (data && data.length > 0) {
+        setBirthdays(data);
+      } else {
+        setBirthdays([]); // Clear if no real data to avoid mock confusion
+      }
+      setLoadingBirthdays(false);
     };
     fetchNews();
     fetchBirthdays();
@@ -85,7 +96,7 @@ const App: React.FC = () => {
         </div>
 
         <DashboardCard title="Inteligencia Organizacional (RAG)" icon="🧠">
-          <AIChat />
+          <AIChat messages={chatMessages} setMessages={setChatMessages} />
         </DashboardCard>
         <DashboardCard title="Calendario de Reuniones" icon="📅">
           <div className="space-y-4">
@@ -164,26 +175,45 @@ const App: React.FC = () => {
         </DashboardCard>
         <DashboardCard title="Personal de Cumpleaños" icon="🎂" className="md:col-span-2">
           <div className="space-y-3">
-            {birthdays.map((b, i) => (
-              <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={b.photo}
-                    alt={b.name}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-slate-100"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(b.name)}&background=0E1B4D&color=fff`;
-                    }}
-                  />
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">{b.name}</p>
-                    <p className="text-xs text-slate-400">{b.department}</p>
+            {loadingBirthdays ? (
+              [1, 2, 3].map(i => (
+                <div key={i} className="flex items-center justify-between p-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 animate-pulse"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-slate-100 rounded w-24 animate-pulse"></div>
+                      <div className="h-2 bg-slate-50 rounded w-16 animate-pulse"></div>
+                    </div>
                   </div>
+                  <div className="h-4 bg-slate-50 rounded w-12 animate-pulse"></div>
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded-md ${b.date === 'Hoy' ? 'bg-enlasa-cyan/20 text-enlasa-blue' : 'bg-slate-100 text-slate-500'
-                  }`}>{b.date}</span>
+              ))
+            ) : birthdays.length > 0 ? (
+              birthdays.map((b, i) => (
+                <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={b.photo}
+                      alt={b.name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-slate-100"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(b.name)}&background=0E1B4D&color=fff`;
+                      }}
+                    />
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">{b.name}</p>
+                      <p className="text-xs text-slate-400">{b.department}</p>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-md ${b.date === 'Hoy' ? 'bg-enlasa-cyan/20 text-enlasa-blue' : 'bg-slate-100 text-slate-500'
+                    }`}>{b.date}</span>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-center text-slate-400 italic text-sm">
+                No hay cumpleaños próximos
               </div>
-            ))}
+            )}
           </div>
         </DashboardCard>
       </div>
@@ -193,7 +223,7 @@ const App: React.FC = () => {
   const renderAIAssistant = () => (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <DashboardCard title={`Enlasa Expert AI - Consultas Avanzadas`} icon="🤖" className="min-h-[700px]">
-        <AIChat />
+        <AIChat messages={chatMessages} setMessages={setChatMessages} />
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-enlasa-blue transition-colors">
             <p className="text-xs font-bold text-enlasa-blue mb-1 uppercase tracking-wider">Sugerencia</p>
@@ -273,7 +303,7 @@ const App: React.FC = () => {
             )}
           </div>
         </DashboardCard>
-      </div>
+      </div >
     );
   };
 

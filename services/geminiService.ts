@@ -261,13 +261,28 @@ export const queryRAG = async (query: string, history: { role: string, parts: { 
       ).join("\n\n");
     }
 
+    const today = new Date().toLocaleDateString('es-CL', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     // 2. Build System Prompt with Context
     const systemPrompt = `Eres Enlasa-AI, el asistente inteligente de Enlasa.
+    
+    INFORMACIÓN TEMPORAL:
+    Hoy es ${today} (Hora Local Chile).
     
     Tienes acceso a una BASE DE CONOCIMIENTOS (BIBLIOTECA) con documentos internos.
     Usa la siguiente información para responder a la pregunta del usuario.
     Si la respuesta se encuentra en el contexto, CITA el nombre del documento fuente.
-    Si la respuesta NO está en el contexto, di "No encuentro información sobre eso en mis documentos internos" y luego intenta responder con tu conocimiento general pero aclarando que no es información oficial.
+    
+    FORMATO DE RESPUESTA:
+    - Si la información es comparativa, numérica o de múltiples ítems, utiliza TABLAS MARKDOWN para una mejor legibilidad.
+    - Si la respuesta NO está en el contexto, di "No encuentro información sobre eso en mis documentos internos" y luego intenta responder con tu conocimiento general pero aclarando que no es información oficial.
     
     CONTEXTO RECUPERADO:
     ${contextText}

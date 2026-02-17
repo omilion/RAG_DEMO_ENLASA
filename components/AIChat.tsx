@@ -5,10 +5,12 @@ import { ChatMessage } from '../types';
 
 import { queryRAG } from '../services/geminiService';
 
-export const AIChat: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: 'Hola, soy Enlasa AI. ¿En qué puedo ayudarte con la gestión de RRHH hoy?', timestamp: new Date() }
-  ]);
+interface AIChatProps {
+  messages: ChatMessage[];
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+}
+
+export const AIChat: React.FC<AIChatProps> = ({ messages, setMessages }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -28,7 +30,6 @@ export const AIChat: React.FC = () => {
     setIsLoading(true);
 
     const history = messages
-      .filter(m => m.role !== 'system') // Filter out system messages if any, though not used here
       .map(m => ({
         role: m.role,
         parts: [{ text: m.text }]
