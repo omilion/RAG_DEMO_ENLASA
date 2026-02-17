@@ -23,7 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, dep
     <aside className="w-64 bg-white border-r border-slate-200 h-screen flex flex-col fixed left-0 top-0 z-50">
       <div className="p-6">
         <img
-          src="https://hackanary.sharepoint.com/sites/Hackanary/_api/siteiconmanager/getsitelogo?type=%271%27&hash=639069384309799057"
+          src="https://jypzdlrbjzdqszwqefha.supabase.co/storage/v1/object/sign/enlace%20media/getsitelogo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV82NTg3ZDNlMi02MDkwLTQ2MGQtOTAxZi05NTYzNjgyYjk5OWEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJlbmxhY2UgbWVkaWEvZ2V0c2l0ZWxvZ28ucG5nIiwiaWF0IjoxNzcxMzY3MjQ4LCJleHAiOjE4MDI5MDMyNDh9.94W_GJK5cdLb0QL3Lb4vl7T7CJPlT2nspV0ritbEtSg"
           alt="Enlasa Logo"
           className="h-10 w-auto cursor-pointer"
           onClick={() => onViewChange('dashboard')}
@@ -36,8 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, dep
             key={item.id}
             onClick={() => onViewChange(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${currentView === item.id
-                ? 'bg-enlasa-blue text-white shadow-lg shadow-blue-200'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-enlasa-blue'
+              ? 'bg-enlasa-blue text-white shadow-lg shadow-blue-200'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-enlasa-blue'
               }`}
           >
             <span className={`text-xl transition-transform group-hover:scale-110 ${currentView === item.id ? 'opacity-100' : 'opacity-70'}`}>
