@@ -1,0 +1,8 @@
+{
+  "name": "Enlasa HR Intelligence Hub",
+  "description": "A high-performance RAG-powered dashboard for Enlasa's HR department, featuring energy news feeds, economic indicators, and AI-driven organizational insights.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
