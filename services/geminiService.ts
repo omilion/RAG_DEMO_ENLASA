@@ -109,13 +109,18 @@ export const getLibraryDocuments = async () => {
 
     if (error) throw error;
 
-    // Extract unique sources and count segments
     const documentMap = new Map();
+    const folderSet = new Set<string>();
+
     data.forEach((doc: any) => {
       const source = doc.metadata?.source || 'Desconocido';
+      const folder = doc.metadata?.folder || 'Otros';
+      folderSet.add(folder);
+
       if (!documentMap.has(source)) {
         documentMap.set(source, {
           name: source,
+          folder: folder,
           segments: 0,
           type: source.split('.').pop()?.toUpperCase() || 'FILE'
         });
@@ -123,10 +128,13 @@ export const getLibraryDocuments = async () => {
       documentMap.get(source).segments++;
     });
 
-    return Array.from(documentMap.values());
+    return {
+      documents: Array.from(documentMap.values()),
+      folders: Array.from(folderSet)
+    };
   } catch (error) {
     console.error("Error fetching library documents:", error);
-    return [];
+    return { documents: [], folders: [] };
   }
 };
 

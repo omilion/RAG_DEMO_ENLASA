@@ -133,11 +133,20 @@ async function processFile(filePath) {
             continue;
         }
 
+        const relativePath = path.relative(KNOWLEDGE_DIR, filePath);
+        const folder = path.dirname(relativePath) === '.' ? 'Raíz' : path.dirname(relativePath);
+
         const { error } = await supabase.from('documents').insert({
             content: chunk,
-            metadata: { source: filename, chunk_index: index },
+            metadata: {
+                source: filename,
+                folder: folder,
+                path: relativePath,
+                chunk_index: index
+            },
             embedding
         });
+
 
         if (error) {
             console.error(`   ❌ Insert error chunk ${index}:`, error.message);

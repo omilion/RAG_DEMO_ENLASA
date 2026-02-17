@@ -1,6 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '../types';
+
 import { queryRAG } from '../services/geminiService';
 
 export const AIChat: React.FC = () => {
@@ -75,10 +77,17 @@ export const AIChat: React.FC = () => {
         {messages.map((m, idx) => (
           <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] px-4 py-3 rounded-2xl ${m.role === 'user'
-                ? 'bg-enlasa-blue text-white rounded-tr-none'
-                : 'bg-white text-slate-700 shadow-sm border border-slate-200 rounded-tl-none'
+              ? 'bg-enlasa-blue text-white rounded-tr-none'
+              : 'bg-white text-slate-700 shadow-sm border border-slate-200 rounded-tl-none'
               }`}>
-              <p className="text-sm leading-relaxed">{m.text}</p>
+              {m.role === 'model' ? (
+                <div className="text-sm markdown-body">
+                  <ReactMarkdown>{m.text}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed">{m.text}</p>
+              )}
+
               <p className={`text-[10px] mt-1 ${m.role === 'user' ? 'text-white/70' : 'text-slate-400'}`}>
                 {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>

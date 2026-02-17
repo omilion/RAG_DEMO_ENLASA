@@ -18,7 +18,8 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
-  const [realDocs, setRealDocs] = useState<any[]>([]);
+  const [realDocs, setRealDocs] = useState<{ documents: any[], folders: string[] }>({ documents: [], folders: [] });
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const department = "RRHH"; // Departamento que inicia el sistema
 
 
@@ -35,8 +36,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (currentView === 'documents') {
       const fetchDocs = async () => {
-        const docs = await getLibraryDocuments();
-        setRealDocs(docs);
+        const data = await getLibraryDocuments();
+        setRealDocs(data);
       };
       fetchDocs();
     }
@@ -55,8 +56,8 @@ const App: React.FC = () => {
               <div className="flex items-end justify-between mt-2">
                 <span className="text-xl font-bold text-slate-900">{indicator.value}</span>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${indicator.trend === 'up' ? 'bg-red-50 text-red-600' :
-                    indicator.trend === 'down' ? 'bg-green-50 text-green-600' :
-                      'bg-slate-50 text-slate-600'
+                  indicator.trend === 'down' ? 'bg-green-50 text-green-600' :
+                    'bg-slate-50 text-slate-600'
                   }`}>
                   {indicator.trend === 'up' ? '▲' : indicator.trend === 'down' ? '▼' : '•'} {indicator.change}%
                 </span>
@@ -155,50 +156,85 @@ const App: React.FC = () => {
     </div>
   );
 
-  const renderDocuments = () => (
-    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative w-96">
-          <input type="text" placeholder="Buscar documentos..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-enlasa-blue/20 outline-none" />
-          <span className="absolute left-3 top-2.5">🔍</span>
-        </div>
-        <button className="bg-enlasa-blue text-white px-4 py-2 rounded-xl text-sm font-bold">+ Subir Documento</button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {['Contratos', 'Políticas Internas', 'Manuales Operativos', 'Legislación Energética'].map((folder) => (
-          <div key={folder} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📂</div>
-            <h4 className="font-bold text-slate-800">{folder}</h4>
-            <p className="text-xs text-slate-500 mt-1">12 archivos • Modificado ayer</p>
+  const renderDocuments = () => {
+    const documentsArray = realDocs.documents || [];
+    const foldersArray = realDocs.folders || [];
+
+    const filteredDocs = activeFolder
+      ? documentsArray.filter(d => d.folder === activeFolder)
+      : documentsArray;
+
+    return (
+      <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">Gestión Documental</h2>
+            <p className="text-slate-500">Gestión inteligente para el futuro de la energía.</p>
           </div>
-        ))}
-      </div>
-      <DashboardCard title="Base de Conocimientos Real" icon="📂">
-        <div className="divide-y divide-slate-100">
-          {realDocs.length > 0 ? realDocs.map((doc, i) => (
-            <div key={i} className="py-4 flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">
-                  {doc.type === 'PDF' ? '📕' : doc.type === 'XLSX' ? '📗' : '📑'}
-                </span>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 group-hover:text-enlasa-blue">{doc.name}</p>
-                  <p className="text-xs text-slate-400">{doc.type} • {doc.segments} fragmentos inteligentes</p>
-                </div>
+          <div className="flex gap-3">
+            <button className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-2 border border-slate-200">
+              📥 Reporte Mensual
+            </button>
+            <button className="bg-enlasa-blue text-white px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+              Nueva Solicitud
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {foldersArray.length > 0 ? foldersArray.map((folder, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
+              className={`p-6 rounded-2xl border transition-all text-left group ${activeFolder === folder ? 'bg-enlasa-blue border-enlasa-blue shadow-lg' : 'bg-white border-slate-200 hover:border-enlasa-blue'
+                }`}
+            >
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                📂
               </div>
-              <div className="flex gap-2">
-                <span className="text-[10px] bg-green-50 text-green-600 px-2 py-1 rounded-full font-bold uppercase">Sincronizado</span>
-              </div>
-            </div>
+              <h3 className={`font-bold mb-1 ${activeFolder === folder ? 'text-white' : 'text-slate-800'}`}>{folder}</h3>
+              <p className={`text-xs ${activeFolder === folder ? 'text-white/70' : 'text-slate-400'}`}>
+                {documentsArray.filter(d => d.folder === folder).length} archivos
+              </p>
+            </button>
           )) : (
-            <div className="py-10 text-center text-slate-400 text-sm italic">
-              Cargando documentos desde el ecosistema...
-            </div>
+            [1, 2, 3, 4].map(i => (
+              <div key={i} className="p-6 rounded-2xl bg-slate-50 border border-slate-100 animate-pulse">
+                <div className="w-12 h-12 bg-slate-200 rounded-xl mb-4"></div>
+                <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+              </div>
+            ))
           )}
         </div>
-      </DashboardCard>
-    </div>
-  );
+
+        <DashboardCard title={activeFolder ? `Archivos en: ${activeFolder}` : "Base de Conocimientos Real"} icon="📂">
+          <div className="divide-y divide-slate-100">
+            {filteredDocs.length > 0 ? filteredDocs.map((doc, i) => (
+              <div key={i} className="py-4 flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">
+                    {doc.type === 'PDF' ? '📕' : doc.type === 'XLSX' ? '📗' : '📑'}
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 group-hover:text-enlasa-blue">{doc.name}</p>
+                    <p className="text-xs text-slate-400">{doc.type} • {doc.segments} fragmentos inteligentes</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-[10px] bg-green-50 text-green-600 px-2 py-1 rounded-full font-bold uppercase">Sincronizado</span>
+                </div>
+              </div>
+            )) : (
+              <div className="py-10 text-center text-slate-400 text-sm italic">
+                {documentsArray.length === 0 ? "Cargando documentos..." : "No hay archivos en esta categoría."}
+              </div>
+            )}
+          </div>
+        </DashboardCard>
+      </div>
+    );
+  };
+
 
 
   const renderCollaborators = () => (
